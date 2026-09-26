@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tribe Board — Community Leaderboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 40px 0 20px; }
+        .logo { font-size: 60px; margin-bottom: 10px; }
+        h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #a855f7, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        .subtitle { color: #888; font-size: 14px; }
+        .card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid #2a2a2a;
+        }
+        .card h2 { font-size: 16px; color: #a855f7; margin-bottom: 16px; }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: #a855f7;
+            color: #a855f7;
+        }
+        .tribe-member {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #0a0a0a;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        .rank {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .rank.gold { background: linear-gradient(135deg, #ffd700, #ff8c00); }
+        .rank.silver { background: linear-gradient(135deg, #c0c0c0, #808080); }
+        .rank.bronze { background: linear-gradient(135deg, #cd7f32, #8b4513); }
+        .member-info { flex: 1; }
+        .member-name { font-weight: 600; font-size: 14px; }
+        .member-handle { font-size: 12px; color: #888; }
+        .member-score {
+            text-align: right;
+        }
+        .score-value { font-weight: 700; font-size: 16px; color: #a855f7; }
+        .score-label { font-size: 10px; color: #666; text-transform: uppercase; }
+        .vote-btn {
+            padding: 6px 12px;
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid #a855f7;
+            border-radius: 20px;
+            color: #a855f7;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .vote-btn:hover { background: rgba(168, 85, 247, 0.4); }
+        .vote-btn.voted { background: #a855f7; color: #fff; }
+        .add-form {
+            margin-top: 16px;
+        }
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 10px 12px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .input-row input:focus { border-color: #a855f7; }
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .stock-section {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid #0f3460;
+        }
+        .stock-section h2 { color: #ffd700; }
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #1a2744;
+        }
+        .stock-item:last-child { border-bottom: none; }
+        .stock-name { font-size: 14px; }
+        .stock-price { font-size: 14px; color: #00ff88; }
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #555;
+            font-size: 12px;
+        }
+        .footer a { color: #a855f7; text-decoration: none; }
+        .token-badge {
+            display: inline-block;
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid #a855f7;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: #a855f7;
+            margin-top: 8px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #555;
+        }
+        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">💜</div>
+            <h1>Tribe Board</h1>
+            <p class="subtitle">The community decides who rises</p>
+            <div class="token-badge">Powered by $VTRIBE</div>
+        </div>
+
+        <div class="card">
+            <h2>🏆 Tribe Rankings</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('builders')">Builders</div>
+                <div class="tab" onclick="switchTab('traders')">Traders</div>
+                <div class="tab" onclick="switchTab('vibers')">Vibers</div>
+            </div>
+            <div id="memberList"></div>
+        </div>
+
+        <div class="card">
+            <h2>➕ Add a Tribe Member</h2>
+            <div class="add-form">
+                <div class="input-row">
+                    <input type="text" id="memberName" placeholder="Name" />
+                    <input type="text" id="memberHandle" placeholder="@handle" />
+                </div>
+                <div class="input-row">
+                    <select id="memberCategory" style="flex:1; padding:10px; background:#0a0a0a; border:1px solid #333; border-radius:8px; color:#fff;">
+                        <option value="builders">Builder</option>
+                        <option value="traders">Trader</option>
+                        <option value="vibers">Viber</option>
+                    </select>
+                    <button class="btn" onclick="addMember()">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card stock-section">
+            <h2>📈 Tribe Stock Treasury</h2>
+            <p style="color: #888; font-size: 12px; margin-bottom: 12px;">Community-managed tokenized stock portfolio</p>
+            <div class="stock-item">
+                <span class="stock-name">OpenAI (pre-IPO)</span>
+                <span class="stock-price">$285.00</span>
+            </div>
+            <div class="stock-item">
+                <span class="stock-name">SpaceX (pre-IPO)</span>
+                <span class="stock-price">$112.50</span>
+            </div>
+            <div class="stock-item">
+                <span class="stock-name">Stripe (pre-IPO)</span>
+                <span class="stock-price">$45.80</span>
+            </div>
+            <div class="stock-item">
+                <span class="stock-name">Anthropic (pre-IPO)</span>
+                <span class="stock-price">$68.20</span>
+            </div>
+            <div class="stock-item">
+                <span class="stock-name">NVIDIA (NVDA)</span>
+                <span class="stock-price">$142.50</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            Built for the <a href="https://testnet.vibevibe.fun">vibe/vibe</a> community<br>
+            The tribe holds each other up 💜
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'builders';
+        let members = JSON.parse(localStorage.getItem('vtribe_members') || '[]');
+        let votes = JSON.parse(localStorage.getItem('vtribe_votes') || '{}');
+
+        if (members.length === 0) {
+            members = [
+                { name: 'Phoenix Builder', handle: '@phoenix', category: 'builders', score: 150 },
+                { name: 'Chain Wizard', handle: '@chainwiz', category: 'builders', score: 120 },
+                { name: 'Vibe Trader', handle: '@vibetrader', category: 'traders', score: 200 },
+                { name: 'Moon Scout', handle: '@moonscout', category: 'traders', score: 180 },
+                { name: 'Tribe Elder', handle: '@tribeelder', category: 'vibers', score: 300 },
+                { name: 'Neon Spirit', handle: '@neonspirit', category: 'vibers', score: 250 },
+            ];
+            localStorage.setItem('vtribe_members', JSON.stringify(members));
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderMembers();
+        }
+
+        function renderMembers() {
+            const filtered = members
+                .filter(m => m.category === currentTab)
+                .sort((a, b) => b.score - a.score);
+            
+            const container = document.getElementById('memberList');
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>No members yet. Add someone!</p></div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map((m, i) => {
+                const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+                const voteKey = m.handle;
+                const hasVoted = votes[voteKey];
+                return `
+                    <div class="tribe-member">
+                        <div class="rank ${rankClass}">${i + 1}</div>
+                        <div class="member-info">
+                            <div class="member-name">${m.name}</div>
+                            <div class="member-handle">${m.handle}</div>
+                        </div>
+                        <div class="member-score">
+                            <div class="score-value">${m.score}</div>
+                            <div class="score-label">Votes</div>
+                        </div>
+                        <button class="vote-btn ${hasVoted ? 'voted' : ''}" onclick="vote('${voteKey}', ${members.indexOf(m)})">
+                            ${hasVoted ? '✓ Voted' : 'Vote'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function vote(key, index) {
+            if (votes[key]) return;
+            votes[key] = true;
+            members[index].score++;
+            localStorage.setItem('vtribe_votes', JSON.stringify(votes));
+            localStorage.setItem('vtribe_members', JSON.stringify(members));
+            renderMembers();
+        }
+
+        function addMember() {
+            const name = document.getElementById('memberName').value.trim();
+            const handle = document.getElementById('memberHandle').value.trim();
+            const category = document.getElementById('memberCategory').value;
+            
+            if (!name || !handle) return;
+            
+            members.push({ name, handle: handle.startsWith('@') ? handle : '@' + handle, category, score: 0 });
+            localStorage.setItem('vtribe_members', JSON.stringify(members));
+            
+            document.getElementById('memberName').value = '';
+            document.getElementById('memberHandle').value = '';
+            renderMembers();
+        }
+
+        renderMembers();
+    </script>
+</body>
+</html>
