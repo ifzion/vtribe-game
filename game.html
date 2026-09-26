@@ -1,709 +1,391 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Tribe Wars — $VTRIBE</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a14; color: #fff; min-height: 100vh; overflow: hidden; touch-action: manipulation; }
-        canvas { display: block; }
-        .hud { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 10; pointer-events: none; display: flex; justify-content: space-between; }
-        .hud-left, .hud-right { display: flex; flex-direction: column; gap: 6px; }
-        .hud-item { background: rgba(0,0,0,0.75); padding: 6px 12px; border-radius: 8px; font-size: 12px; backdrop-filter: blur(4px); display: flex; align-items: center; gap: 6px; }
-        .hud-val { font-weight: 700; }
-        .hp-bar { width: 80px; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
-        .hp-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-        .controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 10; }
-        .ctrl { width: 64px; height: 64px; background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.4); border-radius: 50%; color: #a855f7; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
-        .ctrl:active { background: rgba(168,85,247,0.4); }
-        .ctrl-attack { background: rgba(255,68,68,0.2); border-color: rgba(255,68,68,0.4); color: #ff4444; }
-        .ctrl-attack:active { background: rgba(255,68,68,0.4); }
-        .start { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .start h1 { font-size: 36px; background: linear-gradient(135deg,#a855f7,#ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
-        .start p { color: #666; font-size: 14px; margin-bottom: 20px; text-align: center; max-width: 300px; }
-        .char-select { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        .char-card { width: 80px; padding: 12px 8px; background: #14141f; border: 2px solid #222; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
-        .char-card:active { transform: scale(0.95); }
-        .char-card.sel { border-color: #a855f7; box-shadow: 0 0 16px rgba(168,85,247,0.3); }
-        .char-card .icon { font-size: 28px; margin-bottom: 4px; }
-        .char-card .name { font-size: 10px; color: #888; }
-        .btn { padding: 14px 32px; border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
-        .btn:active { transform: scale(0.96); }
-        .btn-go { background: linear-gradient(135deg,#a855f7,#6366f1); }
-        .game-over { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        .game-over.show { display: flex; }
-        .game-over h2 { font-size: 28px; margin-bottom: 8px; }
-        .game-over .result { font-size: 48px; font-weight: 800; margin-bottom: 16px; }
-        .game-over .stats { background: #14141f; border-radius: 12px; padding: 16px; margin: 12px 0; font-size: 13px; width: 260px; }
-        .game-over .stats div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1a1a1a; }
-        .game-over .stats .k { color: #666; }
-        .game-over .stats .v { color: #fff; font-weight: 600; }
-        .btn-tw { background: linear-gradient(135deg,#1da1f2,#0d8ecf); margin-top: 8px; }
-        .ability-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(168,85,247,0.2); border: 1px solid #a855f7; border-radius: 12px; padding: 12px 20px; color: #a855f7; font-size: 14px; font-weight: 700; z-index: 20; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-        .ability-popup.show { opacity: 1; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>Tribe Wars — $VTRIBE</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--soot:#0c0a08;--ash:#16130f;--bark:#3a2e22;--bone:#e8dcc8;--dust:#9a8b76;--ember:#e85d04;--gold:#d4a017;--tribe:#c084fc}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:Outfit,sans-serif;background:var(--soot);color:var(--bone);min-height:100vh;overflow:hidden;touch-action:manipulation}
+canvas{display:block}
+.hud{position:fixed;top:12px;left:12px;right:12px;z-index:10;pointer-events:none;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.plaque{background:linear-gradient(180deg,rgba(28,22,16,.92),rgba(12,10,8,.92));border:1px solid var(--bark);padding:10px 12px;min-width:170px;max-width:46vw}
+.plaque.right{text-align:right}
+.who{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.plaque.right .who{flex-direction:row-reverse}
+.who .ic{font-size:18px}
+.who .nm{font-weight:700;font-size:13px;letter-spacing:.04em}
+.hp-row{display:flex;align-items:center;gap:8px}
+.plaque.right .hp-row{flex-direction:row-reverse}
+.hp-bar{flex:1;height:8px;background:#1a140e;border:1px solid #2c241a;overflow:hidden}
+.hp-fill{height:100%;width:100%;background:#7dce82;transition:width .25s}
+.hp-num{font-size:11px;color:var(--dust);font-variant-numeric:tabular-nums;min-width:44px}
+.meta{margin-top:6px;font-size:10px;color:var(--dust);letter-spacing:.08em;text-transform:uppercase}
+.center-hud{text-align:center;pointer-events:none}
+.combo{font-family:Cinzel,serif;font-size:18px;color:var(--gold);min-height:22px}
+.kills{font-size:11px;color:var(--dust);letter-spacing:.16em;text-transform:uppercase}
+.controls{position:fixed;left:16px;right:16px;bottom:18px;z-index:10;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}
+.cluster{display:flex;gap:10px;pointer-events:auto}
+.ctrl{width:62px;height:62px;border-radius:50%;background:rgba(22,19,15,.75);border:1px solid var(--bark);color:var(--bone);font-size:20px;display:grid;place-items:center;user-select:none;backdrop-filter:blur(6px)}
+.ctrl:active{transform:scale(.96);background:rgba(58,46,34,.9)}
+.ctrl-attack{width:74px;height:74px;border-color:var(--ember);color:#ffb089;background:rgba(232,93,4,.18)}
+.ctrl-ability{border-color:var(--tribe);color:var(--tribe)}
+.start,.game-over{position:fixed;inset:0;z-index:100;background:radial-gradient(900px 500px at 50% 0%,rgba(232,93,4,.16),transparent 55%),rgba(8,6,4,.94);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;overflow:auto}
+.game-over{display:none}
+.game-over.show{display:flex}
+.eyebrow{color:var(--gold);letter-spacing:.28em;font-size:11px;text-transform:uppercase;margin-bottom:8px}
+.start h1,.game-over h2{font-family:Cinzel,serif;font-size:clamp(28px,7vw,44px);margin-bottom:8px}
+.start p,.hint{color:var(--dust);font-size:14px;max-width:420px;text-align:center;margin-bottom:18px}
+.record{display:flex;gap:18px;color:var(--dust);font-size:12px;margin-bottom:22px;letter-spacing:.08em}
+.record b{color:var(--bone)}
+.char-select{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap;justify-content:center;max-width:720px}
+.char-card{width:122px;padding:14px 10px 12px;background:var(--ash);border:1px solid var(--bark);cursor:pointer;text-align:center;transition:border-color .15s,transform .15s}
+.char-card:hover{border-color:#6a563d}
+.char-card.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.char-card .icon{font-size:26px;margin-bottom:6px}
+.char-card .name{font-family:Cinzel,serif;font-size:12px;margin-bottom:8px}
+.stats{display:flex;justify-content:space-between;font-size:9px;color:var(--dust);letter-spacing:.04em;margin-bottom:8px}
+.abil{font-size:10px;color:var(--gold);line-height:1.3}
+.btn{padding:14px 32px;border:none;color:#1a0e04;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:Outfit,sans-serif}
+.btn-go{background:linear-gradient(180deg,#f3c14a,var(--gold) 40%,#a36b08)}
+.btn-go:active{transform:scale(.97)}
+.btn-tw{background:transparent;color:var(--bone);border:1px solid var(--bark);margin-top:10px}
+.result{font-family:Cinzel,serif;font-size:36px;color:var(--gold);margin:6px 0 16px}
+.stats-box{background:var(--ash);border:1px solid var(--bark);padding:14px 16px;width:min(280px,90vw);margin-bottom:18px;font-size:13px}
+.stats-box div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2a2218}
+.stats-box div:last-child{border-bottom:none}
+.k{color:var(--dust)}
+.v{font-weight:600}
+.ability-popup{position:fixed;top:28%;left:50%;transform:translate(-50%,-50%);border:1px solid var(--gold);background:rgba(12,10,8,.85);padding:10px 18px;color:var(--gold);font-size:13px;letter-spacing:.08em;z-index:20;opacity:0;transition:opacity .3s;pointer-events:none;text-transform:uppercase}
+.ability-popup.show{opacity:1}
+.back{position:fixed;top:16px;left:16px;z-index:110;color:var(--dust);text-decoration:none;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+@media(max-width:640px){.char-card{width:calc(50% - 8px)}.plaque{min-width:0;flex:1}.center-hud{display:none}}
+</style>
 </head>
 <body>
 <canvas id="c"></canvas>
 
+<a href="index.html" class="back" id="backHome" style="display:none">← Camp</a>
+
 <div class="hud" id="hud" style="display:none">
-    <div class="hud-left">
-        <div class="hud-item">
-            <span id="playerIcon">💜</span>
-            <span class="hud-val" id="playerName">You</span>
-            <div class="hp-bar"><div class="hp-fill" id="playerHP" style="width:100%;background:#a855f7"></div></div>
-        </div>
-    </div>
-    <div class="hud-right">
-        <div class="hud-item">
-            <span id="enemyIcon">🔥</span>
-            <span class="hud-val" id="enemyName">Enemy</span>
-            <div class="hp-bar"><div class="hp-fill" id="enemyHP" style="width:100%;background:#ff4d1a"></div></div>
-        </div>
-    </div>
+<div class="plaque">
+<div class="who"><span class="ic" id="playerIcon">💜</span><span class="nm" id="playerName">You</span></div>
+<div class="hp-row">
+<div class="hp-bar"><div class="hp-fill" id="playerHP"></div></div>
+<span class="hp-num" id="playerHPNum">100</span>
+</div>
+<div class="meta" id="playerMeta">Ability ready</div>
+</div>
+<div class="center-hud">
+<div class="combo" id="comboDisplay"></div>
+<div class="kills" id="killsDisplay">0 fallen</div>
+</div>
+<div class="plaque right">
+<div class="who"><span class="ic" id="enemyIcon">🔥</span><span class="nm" id="enemyName">Enemy</span></div>
+<div class="hp-row">
+<div class="hp-bar"><div class="hp-fill" id="enemyHP"></div></div>
+<span class="hp-num" id="enemyHPNum">100</span>
+</div>
+<div class="meta" id="enemyMeta">Challenger</div>
+</div>
 </div>
 
 <div class="controls" id="controls" style="display:none">
-    <div class="ctrl" id="btnLeft">←</div>
-    <div class="ctrl" id="btnRight">→</div>
-    <div class="ctrl ctrl-attack" id="btnAttack">⚔️</div>
-    <div class="ctrl" id="btnDodge">🛡️</div>
+<div class="cluster">
+<div class="ctrl" id="btnLeft">←</div>
+<div class="ctrl" id="btnRight">→</div>
+</div>
+<div class="cluster">
+<div class="ctrl ctrl-ability" id="btnAbility">✦</div>
+<div class="ctrl" id="btnDodge">🛡</div>
+<div class="ctrl ctrl-attack" id="btnAttack">⚔</div>
+</div>
 </div>
 
 <div class="ability-popup" id="abilityPopup"></div>
 
 <div class="start" id="startScreen">
-    <h1>⚔️ Tribe Wars</h1>
-    <p>Choose your tribe. Battle in 3rd person. Prove your worth.</p>
-    <div class="char-select" id="charSelect"></div>
-    <button class="btn btn-go" onclick="startGame()">⚔️ START BATTLE</button>
+<div class="eyebrow">$VTRIBE · Season 0</div>
+<h1>Tribe Wars</h1>
+<p>Choose your clan. Close the distance. End the fight.</p>
+<div class="record"><span>XP <b id="recXP">0</b></span><span>Wins <b id="recWins">0</b></span><span>Losses <b id="recLosses">0</b></span></div>
+<div class="char-select" id="charSelect"></div>
+<button class="btn btn-go" onclick="startGame()">Start battle</button>
+<p class="hint">A/D move · W jump · Space attack · Shift dodge · E ability</p>
 </div>
 
 <div class="game-over" id="go">
-    <h2 id="goTitle">Victory!</h2>
-    <div class="result" id="goResult">+10 XP</div>
-    <div class="stats" id="goStats"></div>
-    <button class="btn btn-go" onclick="startGame()">⚔️ Fight Again</button>
-    <button class="btn btn-tw" onclick="share()">📤 Share</button>
+<div class="eyebrow" id="goTitle">The pit is quiet</div>
+<h2 id="goSubtitle">Defeated</h2>
+<div class="result" id="goResult">+10 XP</div>
+<div class="stats-box" id="goStats"></div>
+<button class="btn btn-go" onclick="startGame()">Fight again</button>
+<button class="btn btn-tw" onclick="share()">Share the bout</button>
 </div>
 
 <script>
-const cv = document.getElementById('c');
-const cx = cv.getContext('2d');
-let W, H, GROUND;
-function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; GROUND = H - 100; }
-resize(); addEventListener('resize', resize);
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+let W,H,GROUND;
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;GROUND=H-100}
+resize();addEventListener('resize',resize);
 
-// Tribes
-const TRIBES = [
-    { id:'phoenix', name:'Phoenix', icon:'🔥', color:'#ff4d1a', hp:100, atk:15, spd:3, ability:'Rebirth', abilityDesc:'Revive at 50% HP', abilityCD:999 },
-    { id:'vtribe', name:'Vibe Tribe', icon:'💜', color:'#ff6b9d', hp:100, atk:12, spd:3.5, ability:'Unity', abilityDesc:'+30% ATK when HP<50%', abilityCD:60 },
-    { id:'ignite', name:'Spark', icon:'⚡', color:'#ffe14a', hp:90, atk:18, spd:4, ability:'Lightning', abilityDesc:'2x damage crit (30%)', abilityCD:45 },
-    { id:'mwalk', name:'Moon', icon:'🌙', color:'#7ec8ff', hp:110, atk:10, spd:2.5, ability:'Gravity', abilityDesc:'Slow enemy 50% for 3s', abilityCD:60 },
-    { id:'cnmd', name:'Nomad', icon:'🔔', color:'#c4a35a', hp:95, atk:14, spd:3, ability:'Alert', abilityDesc:'See enemy next attack', abilityCD:30 }
+const TRIBES=[
+{id:'phoenix',name:'Phoenix',icon:'🔥',color:'#ff4d1a',hp:100,atk:15,spd:3,ability:'Rebirth',abilityDesc:'Revive at 50% HP',abilityCD:999},
+{id:'vtribe',name:'Vibe Tribe',icon:'💜',color:'#ff6b9d',hp:100,atk:12,spd:3.5,ability:'Unity',abilityDesc:'+30% ATK when HP<50%',abilityCD:60},
+{id:'ignite',name:'Spark',icon:'⚡',color:'#ffe14a',hp:90,atk:18,spd:4,ability:'Lightning',abilityDesc:'2x damage crit (30%)',abilityCD:45},
+{id:'mwalk',name:'Moon',icon:'🌙',color:'#7ec8ff',hp:110,atk:10,spd:2.5,ability:'Gravity',abilityDesc:'Slow enemy 50% for 3s',abilityCD:60},
+{id:'cnmd',name:'Nomad',icon:'🔔',color:'#c4a35a',hp:95,atk:14,spd:3,ability:'Alert',abilityDesc:'See enemy next attack',abilityCD:30}
 ];
 
-// Game state
-let player, enemies, particles, floatingTexts;
-let gameActive, selectedChar, currentEnemy;
-let score, kills, combo, bestCombo, damageDealt, damageTaken;
-let abilityCooldown, abilityActive, abilityTimer;
-let shakeMag, hitStop;
-let frameCount;
+let player,enemies,particles,floatingTexts;
+let gameActive,selectedChar=1,currentEnemy;
+let score,kills,combo,bestCombo,damageDealt,damageTaken;
+let abilityCooldown,abilityActive,abilityTimer;
+let shakeMag,hitStop,frameCount;
+let keys={};
 
-// Input
-let keys = {};
-let attacking, dodging;
+const LS='tribe_v3';
+let save=JSON.parse(localStorage.getItem(LS)||'{}');
+let xp=save.xp||0,wins=save.wins||0,losses=save.losses||0;
 
-// Load save
-const LS = 'tribe_v3';
-let save = JSON.parse(localStorage.getItem(LS)||'{}');
-let xp = save.xp || 0;
-let wins = save.wins || 0;
-let losses = save.losses || 0;
-
-function init() {
-    // Character select
-    const sel = document.getElementById('charSelect');
-    sel.innerHTML = TRIBES.map((t,i) => `
-        <div class="char-card" onclick="selectChar(${i})" id="char${i}">
-            <div class="icon">${t.icon}</div>
-            <div class="name">${t.name}</div>
-        </div>
-    `).join('');
+function init(){
+document.getElementById('recXP').textContent=xp;
+document.getElementById('recWins').textContent=wins;
+document.getElementById('recLosses').textContent=losses;
+const sel=document.getElementById('charSelect');
+sel.innerHTML=TRIBES.map((t,i)=>`
+<div class="char-card${i===selectedChar?' sel':''}" onclick="selectChar(${i})">
+<div class="icon">${t.icon}</div>
+<div class="name">${t.name}</div>
+<div class="stats"><span>HP ${t.hp}</span><span>ATK ${t.atk}</span><span>SPD ${t.spd}</span></div>
+<div class="abil">${t.ability}: ${t.abilityDesc}</div>
+</div>`).join('');
 }
 
-function selectChar(idx) {
-    selectedChar = idx;
-    document.querySelectorAll('.char-card').forEach((c,i) => c.classList.toggle('sel', i===idx));
+function selectChar(idx){
+selectedChar=idx;
+document.querySelectorAll('.char-card').forEach((c,i)=>c.classList.toggle('sel',i===idx));
 }
 
-function startGame() {
-    if(selectedChar === undefined) { selectChar(0); return; }
-    
-    document.getElementById('startScreen').style.display = 'none';
-    document.getElementById('go').classList.remove('show');
-    document.getElementById('hud').style.display = 'flex';
-    document.getElementById('controls').style.display = 'flex';
-    
-    const t = TRIBES[selectedChar];
-    player = {
-        x: W * 0.3, y: GROUND - 40, w: 32, h: 40,
-        hp: t.hp, maxHP: t.hp, atk: t.atk, spd: t.spd,
-        color: t.color, icon: t.icon, name: t.name,
-        vx: 0, vy: 0, grounded: true,
-        facing: 1, state: 'idle', stateTimer: 0,
-        ability: t.ability, abilityDesc: t.abilityDesc, abilityCD: t.abilityCD
-    };
-    
-    enemies = [];
-    particles = [];
-    floatingTexts = [];
-    score = 0; kills = 0; combo = 0; bestCombo = 0;
-    damageDealt = 0; damageTaken = 0;
-    abilityCooldown = 0; abilityActive = false; abilityTimer = 0;
-    shakeMag = 0; hitStop = 0; frameCount = 0;
-    gameActive = true;
-    
-    spawnEnemy();
-    updateHUD();
-    gameLoop();
+function startGame(){
+document.getElementById('startScreen').style.display='none';
+document.getElementById('backHome').style.display='none';
+document.getElementById('go').classList.remove('show');
+document.getElementById('hud').style.display='flex';
+document.getElementById('controls').style.display='flex';
+
+const t=TRIBES[selectedChar];
+player={x:W*.3,y:GROUND-40,w:32,h:40,hp:t.hp,maxHP:t.hp,atk:t.atk,spd:t.spd,color:t.color,icon:t.icon,name:t.name,vx:0,vy:0,grounded:true,facing:1,state:'idle',stateTimer:0,ability:t.ability,abilityDesc:t.abilityDesc,abilityCD:t.abilityCD};
+
+enemies=[];particles=[];floatingTexts=[];
+score=0;kills=0;combo=0;bestCombo=0;
+damageDealt=0;damageTaken=0;
+abilityCooldown=0;abilityActive=false;abilityTimer=0;
+shakeMag=0;hitStop=0;frameCount=0;gameActive=true;
+
+document.getElementById('playerIcon').textContent=t.icon;
+document.getElementById('playerName').textContent=t.name;
+spawnEnemy();updateHUD();gameLoop();
 }
 
-function spawnEnemy() {
-    const idx = Math.floor(Math.random() * TRIBES.length);
-    const t = TRIBES[idx];
-    const level = 1 + kills * 0.2;
-    
-    currentEnemy = {
-        x: W * 0.7, y: GROUND - 40, w: 32, h: 40,
-        hp: Math.floor(t.hp * level), maxHP: Math.floor(t.hp * level),
-        atk: Math.floor(t.atk * level), spd: t.spd * 0.8,
-        color: t.color, icon: t.icon, name: t.name,
-        vx: 0, vy: 0, grounded: true,
-        facing: -1, state: 'idle', stateTimer: 0,
-        aiTimer: 0, aiState: 'approach'
-    };
-    
-    document.getElementById('enemyIcon').textContent = t.icon;
-    document.getElementById('enemyName').textContent = t.name;
+function spawnEnemy(){
+const idx=Math.floor(Math.random()*TRIBES.length);
+const t=TRIBES[idx];
+const level=1+kills*.2;
+currentEnemy={x:W*.7,y:GROUND-40,w:32,h:40,hp:Math.floor(t.hp*level),maxHP:Math.floor(t.hp*level),atk:Math.floor(t.atk*level),spd:t.spd*.8,color:t.color,icon:t.icon,name:t.name,vx:0,vy:0,grounded:true,facing:-1,state:'idle',stateTimer:0,aiTimer:0,aiState:'approach'};
+document.getElementById('enemyIcon').textContent=t.icon;
+document.getElementById('enemyName').textContent=t.name;
+document.getElementById('enemyMeta').textContent='Rank '+(kills+1);
 }
 
-function attack() {
-    if(!gameActive || player.state === 'attack' || player.state === 'dodge') return;
-    
-    player.state = 'attack';
-    player.stateTimer = 15;
-    
-    // Check hit
-    const dx = Math.abs(player.x - currentEnemy.x);
-    const dy = Math.abs(player.y - currentEnemy.y);
-    
-    if(dx < 60 && dy < 40) {
-        let dmg = player.atk + Math.floor(Math.random() * 5);
-        let crit = false;
-        
-        // Spark ability: 30% crit
-        if(player.ability === 'Lightning' && Math.random() < 0.3) {
-            dmg *= 2;
-            crit = true;
-        }
-        
-        // Vibe Tribe ability: +30% ATK when HP<50%
-        if(player.ability === 'Unity' && player.hp < player.maxHP * 0.5) {
-            dmg = Math.floor(dmg * 1.3);
-        }
-        
-        currentEnemy.hp = Math.max(0, currentEnemy.hp - dmg);
-        damageDealt += dmg;
-        
-        // Knockback
-        currentEnemy.vx = player.facing * 5;
-        currentEnemy.vy = -3;
-        
-        // Effects
-        spawnHitParticles(currentEnemy.x, currentEnemy.y - 20, currentEnemy.color);
-        floatingTexts.push({x: currentEnemy.x, y: currentEnemy.y - 40, text: (crit?'💥 ':'') + dmg, color: crit?'#ffd700':'#fff', life: 30});
-        shake(crit ? 8 : 4);
-        hitStop = crit ? 8 : 4;
-        
-        combo++;
-        if(combo > bestCombo) bestCombo = combo;
-        
-        if(currentEnemy.hp <= 0) {
-            enemyDefeated();
-        }
-    }
+function attack(){
+if(!gameActive||player.state==='attack'||player.state==='dodge')return;
+player.state='attack';player.stateTimer=15;
+const dx=Math.abs(player.x-currentEnemy.x),dy=Math.abs(player.y-currentEnemy.y);
+if(dx<60&&dy<40){
+let dmg=player.atk+Math.floor(Math.random()*5);
+let crit=false;
+if(player.ability==='Lightning'&&Math.random()<.3){dmg*=2;crit=true;}
+if(player.ability==='Unity'&&player.hp<player.maxHP*.5)dmg=Math.floor(dmg*1.3);
+currentEnemy.hp=Math.max(0,currentEnemy.hp-dmg);
+damageDealt+=dmg;
+currentEnemy.vx=player.facing*5;currentEnemy.vy=-3;
+spawnHitParticles(currentEnemy.x,currentEnemy.y-20,currentEnemy.color);
+floatingTexts.push({x:currentEnemy.x,y:currentEnemy.y-40,text:(crit?'💥 ':'')+dmg,color:crit?'#d4a017':'#e8dcc8',life:30});
+shake(crit?8:4);hitStop=crit?8:4;
+combo++;if(combo>bestCombo)bestCombo=combo;
+if(currentEnemy.hp<=0)enemyDefeated();
+}
 }
 
-function dodge() {
-    if(!gameActive || player.state === 'dodge') return;
-    
-    player.state = 'dodge';
-    player.stateTimer = 20;
-    player.vx = player.facing * -8;
-    player.vy = -4;
-    
-    showAbility('🛡️ Dodge!');
+function dodge(){
+if(!gameActive||player.state==='dodge')return;
+player.state='dodge';player.stateTimer=20;
+player.vx=player.facing*-8;player.vy=-4;
+showAbility('Dodge!');
 }
 
-function useAbility() {
-    if(!gameActive || abilityCooldown > 0) return;
-    
-    abilityCooldown = player.abilityCD;
-    abilityActive = true;
-    abilityTimer = 180; // 3 seconds
-    
-    switch(player.ability) {
-        case 'Rebirth':
-            // Will trigger on death
-            showAbility('🔥 Rebirth Ready!');
-            break;
-        case 'Unity':
-            showAbility('💜 Unity Active!');
-            break;
-        case 'Lightning':
-            showAbility('⚡ Lightning Strike!');
-            // Instant damage
-            currentEnemy.hp = Math.max(0, currentEnemy.hp - player.atk * 3);
-            spawnHitParticles(currentEnemy.x, currentEnemy.y - 20, '#ffe14a');
-            shake(12);
-            break;
-        case 'Gravity':
-            showAbility('🌙 Gravity Well!');
-            currentEnemy.spd *= 0.5;
-            break;
-        case 'Alert':
-            showAbility('🔔 Alert! Next: ' + (currentEnemy.aiState === 'attack' ? '⚔️ ATTACK' : '🚶 APPROACH'));
-            break;
-    }
+function useAbility(){
+if(!gameActive||abilityCooldown>0)return;
+abilityCooldown=player.abilityCD;abilityActive=true;abilityTimer=180;
+switch(player.ability){
+case'Rebirth':showAbility('Rebirth primed');break;
+case'Unity':showAbility('Unity active');break;
+case'Lightning':showAbility('Lightning strike');currentEnemy.hp=Math.max(0,currentEnemy.hp-player.atk*3);spawnHitParticles(currentEnemy.x,currentEnemy.y-20,'#ffe14a');shake(12);if(currentEnemy.hp<=0)enemyDefeated();break;
+case'Gravity':showAbility('Gravity well');currentEnemy.spd*=.5;break;
+case'Alert':showAbility('Next: '+(currentEnemy.aiState==='attack'?'ATTACK':'APPROACH'));break;
+}
 }
 
-function showAbility(text) {
-    const el = document.getElementById('abilityPopup');
-    el.textContent = text;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 1500);
+function showAbility(text){const el=document.getElementById('abilityPopup');el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1500);}
+
+function enemyDefeated(){kills++;combo++;score+=100+kills*10;spawnDeathParticles(currentEnemy.x,currentEnemy.y-20,currentEnemy.color);setTimeout(()=>{if(gameActive)spawnEnemy();},1000);}
+
+function spawnHitParticles(x,y,color){for(let i=0;i<8;i++)particles.push({x,y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8-2,life:20+Math.random()*10,color,size:3+Math.random()*3});}
+function spawnDeathParticles(x,y,color){for(let i=0;i<20;i++)particles.push({x,y,vx:(Math.random()-.5)*12,vy:(Math.random()-.5)*12-4,life:30+Math.random()*20,color,size:4+Math.random()*4});}
+function shake(mag){shakeMag=Math.max(shakeMag,mag);}
+
+function update(){
+if(!gameActive)return;frameCount++;
+if(hitStop>0){hitStop--;return;}
+
+player.vx*=.85;player.vy+=.4;player.x+=player.vx;player.y+=player.vy;
+if(player.y>=GROUND-player.h){player.y=GROUND-player.h;player.vy=0;player.grounded=true;}
+player.x=Math.max(player.w,Math.min(W-player.w,player.x));
+if(player.stateTimer>0)player.stateTimer--;else player.state='idle';
+
+if(currentEnemy){
+const dx=player.x-currentEnemy.x,dist=Math.abs(dx);
+currentEnemy.aiTimer++;
+if(currentEnemy.aiState==='approach'){currentEnemy.x+=Math.sign(dx)*currentEnemy.spd;currentEnemy.facing=Math.sign(dx);if(dist<50){currentEnemy.aiState='attack';currentEnemy.aiTimer=0;}}
+else if(currentEnemy.aiState==='attack'){if(currentEnemy.aiTimer>30){if(dist<60){let dmg=currentEnemy.atk+Math.floor(Math.random()*3);if(player.state==='dodge'){showAbility('Dodged!');dmg=0;}if(dmg>0){player.hp=Math.max(0,player.hp-dmg);damageTaken+=dmg;player.vx=-Math.sign(dx)*4;player.vy=-3;spawnHitParticles(player.x,player.y-20,player.color);floatingTexts.push({x:player.x,y:player.y-40,text:'-'+dmg,color:'#e85d04',life:30});shake(5);combo=0;}}currentEnemy.aiState='retreat';currentEnemy.aiTimer=0;}}
+else if(currentEnemy.aiState==='retreat'){currentEnemy.x-=Math.sign(dx)*currentEnemy.spd;if(currentEnemy.aiTimer>40){currentEnemy.aiState='approach';currentEnemy.aiTimer=0;}}
+
+currentEnemy.vx*=.85;currentEnemy.vy+=.4;currentEnemy.x+=currentEnemy.vx;currentEnemy.y+=currentEnemy.vy;
+if(currentEnemy.y>=GROUND-currentEnemy.h){currentEnemy.y=GROUND-currentEnemy.h;currentEnemy.vy=0;}
+currentEnemy.x=Math.max(currentEnemy.w,Math.min(W-currentEnemy.w,currentEnemy.x));
+if(currentEnemy.stateTimer>0)currentEnemy.stateTimer--;else currentEnemy.state='idle';
 }
 
-function enemyDefeated() {
-    kills++;
-    combo++;
-    score += 100 + kills * 10;
-    
-    spawnDeathParticles(currentEnemy.x, currentEnemy.y - 20, currentEnemy.color);
-    
-    setTimeout(() => {
-        if(gameActive) spawnEnemy();
-    }, 1000);
+if(abilityCooldown>0)abilityCooldown--;
+if(abilityActive){abilityTimer--;if(abilityTimer<=0)abilityActive=false;}
+
+particles=particles.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.life--;return p.life>0;});
+floatingTexts=floatingTexts.filter(f=>{f.y-=1;f.life--;return f.life>0;});
+shakeMag*=.9;if(shakeMag<.5)shakeMag=0;
+
+if(player.hp<=0){
+if(player.ability==='Rebirth'&&abilityActive){player.hp=Math.floor(player.maxHP*.5);abilityActive=false;showAbility('REBIRTH!');spawnHitParticles(player.x,player.y-20,'#ff4d1a');}
+else gameOver(false);
 }
 
-function spawnHitParticles(x, y, color) {
-    for(let i = 0; i < 8; i++) {
-        particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 8,
-            vy: (Math.random() - 0.5) * 8 - 2,
-            life: 20 + Math.random() * 10,
-            color: color,
-            size: 3 + Math.random() * 3
-        });
-    }
+updateHUD();
 }
 
-function spawnDeathParticles(x, y, color) {
-    for(let i = 0; i < 20; i++) {
-        particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 12,
-            vy: (Math.random() - 0.5) * 12 - 4,
-            life: 30 + Math.random() * 20,
-            color: color,
-            size: 4 + Math.random() * 4
-        });
-    }
+function drawChar(char,isPlayer){
+cx.save();cx.translate(char.x,char.y);cx.scale(char.facing,1);
+cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(0,char.h,char.w*.8,6,0,0,Math.PI*2);cx.fill();
+const dark=adjustColor(char.color,-30);
+const legPhase=Math.sin(frameCount*.15)*3;
+cx.fillStyle=dark;cx.fillRect(-8,char.h-12,6,12+legPhase);cx.fillRect(2,char.h-12,6,12-legPhase);
+cx.fillStyle=char.color;cx.fillRect(-char.w/2,-char.h/2,char.w,char.h);
+cx.fillStyle=adjustColor(char.color,20);cx.fillRect(-char.w/2,-char.h/2,char.w,char.h/3);
+cx.fillStyle=char.color;cx.fillRect(-12,-char.h/2-18,24,24);
+cx.fillStyle='#e8dcc8';cx.fillRect(-8,-char.h/2-12,6,6);cx.fillRect(2,-char.h/2-12,6,6);
+cx.fillStyle='#0c0a08';cx.fillRect(-6,-char.h/2-10,3,3);cx.fillRect(4,-char.h/2-10,3,3);
+cx.fillStyle=dark;
+if(char.state==='attack'){cx.fillRect(char.w/2,-10,12,6);cx.fillRect(char.w/2+8,-12,6,10);}
+else{cx.fillRect(char.w/2,-8,6,16);cx.fillRect(-char.w/2-6,-8,6,16);}
+if(isPlayer&&abilityActive){cx.fillStyle=char.color+'33';cx.beginPath();cx.arc(0,0,40,0,Math.PI*2);cx.fill();}
+cx.restore();
 }
 
-function shake(mag) { shakeMag = Math.max(shakeMag, mag); }
+function draw(){
+cx.save();
+if(shakeMag>0)cx.translate((Math.random()-.5)*shakeMag,(Math.random()-.5)*shakeMag);
 
-function update() {
-    if(!gameActive) return;
-    frameCount++;
-    
-    // Hit stop
-    if(hitStop > 0) { hitStop--; return; }
-    
-    // Player physics
-    player.vx *= 0.85;
-    player.vy += 0.4;
-    player.x += player.vx;
-    player.y += player.vy;
-    
-    if(player.y >= GROUND - player.h) {
-        player.y = GROUND - player.h;
-        player.vy = 0;
-        player.grounded = true;
-    }
-    
-    player.x = Math.max(player.w, Math.min(W - player.w, player.x));
-    
-    // Player state
-    if(player.stateTimer > 0) player.stateTimer--;
-    else player.state = 'idle';
-    
-    // Enemy AI
-    if(currentEnemy) {
-        const dx = player.x - currentEnemy.x;
-        const dy = player.y - currentEnemy.y;
-        const dist = Math.abs(dx);
-        
-        currentEnemy.aiTimer++;
-        
-        // Simple AI
-        if(currentEnemy.aiState === 'approach') {
-            currentEnemy.x += Math.sign(dx) * currentEnemy.spd;
-            currentEnemy.facing = Math.sign(dx);
-            
-            if(dist < 50) {
-                currentEnemy.aiState = 'attack';
-                currentEnemy.aiTimer = 0;
-            }
-        } else if(currentEnemy.aiState === 'attack') {
-            if(currentEnemy.aiTimer > 30) {
-                // Enemy attacks
-                if(dist < 60) {
-                    let dmg = currentEnemy.atk + Math.floor(Math.random() * 3);
-                    
-                    // Check if player is dodging
-                    if(player.state === 'dodge') {
-                        showAbility('🛡️ Dodged!');
-                        dmg = 0;
-                    }
-                    
-                    if(dmg > 0) {
-                        player.hp = Math.max(0, player.hp - dmg);
-                        damageTaken += dmg;
-                        player.vx = -Math.sign(dx) * 4;
-                        player.vy = -3;
-                        
-                        spawnHitParticles(player.x, player.y - 20, player.color);
-                        floatingTexts.push({x: player.x, y: player.y - 40, text: '-' + dmg, color: '#ff4444', life: 30});
-                        shake(5);
-                        combo = 0;
-                        
-                        // Moon ability: slow enemy
-                        if(player.ability === 'Gravity' && abilityActive) {
-                            currentEnemy.spd *= 0.5;
-                        }
-                    }
-                }
-                
-                currentEnemy.aiState = 'retreat';
-                currentEnemy.aiTimer = 0;
-            }
-        } else if(currentEnemy.aiState === 'retreat') {
-            currentEnemy.x -= Math.sign(dx) * currentEnemy.spd;
-            
-            if(currentEnemy.aiTimer > 40) {
-                currentEnemy.aiState = 'approach';
-                currentEnemy.aiTimer = 0;
-            }
-        }
-        
-        // Enemy physics
-        currentEnemy.vx *= 0.85;
-        currentEnemy.vy += 0.4;
-        currentEnemy.x += currentEnemy.vx;
-        currentEnemy.y += currentEnemy.vy;
-        
-        if(currentEnemy.y >= GROUND - currentEnemy.h) {
-            currentEnemy.y = GROUND - currentEnemy.h;
-            currentEnemy.vy = 0;
-        }
-        
-        currentEnemy.x = Math.max(currentEnemy.w, Math.min(W - currentEnemy.w, currentEnemy.x));
-        
-        // Enemy state
-        if(currentEnemy.stateTimer > 0) currentEnemy.stateTimer--;
-        else currentEnemy.state = 'idle';
-    }
-    
-    // Ability cooldown
-    if(abilityCooldown > 0) abilityCooldown--;
-    if(abilityActive) {
-        abilityTimer--;
-        if(abilityTimer <= 0) abilityActive = false;
-    }
-    
-    // Particles
-    particles = particles.filter(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.1;
-        p.life--;
-        return p.life > 0;
-    });
-    
-    // Floating texts
-    floatingTexts = floatingTexts.filter(f => {
-        f.y -= 1;
-        f.life--;
-        return f.life > 0;
-    });
-    
-    // Shake decay
-    shakeMag *= 0.9;
-    if(shakeMag < 0.5) shakeMag = 0;
-    
-    // Player death
-    if(player.hp <= 0) {
-        // Phoenix ability: Rebirth
-        if(player.ability === 'Rebirth' && abilityActive) {
-            player.hp = Math.floor(player.maxHP * 0.5);
-            abilityActive = false;
-            showAbility('🔥 REBIRTH!');
-            spawnHitParticles(player.x, player.y - 20, '#ff4d1a');
-        } else {
-            gameOver(false);
-        }
-    }
-    
-    updateHUD();
+const sky=cx.createLinearGradient(0,0,0,H);
+sky.addColorStop(0,'#1a1018');sky.addColorStop(.45,'#24140c');sky.addColorStop(.72,'#3a1c0c');sky.addColorStop(1,'#1a120c');
+cx.fillStyle=sky;cx.fillRect(0,0,W,H);
+
+cx.fillStyle='rgba(232,220,190,.55)';
+for(let i=0;i<60;i++){const x=(i*41+frameCount*.08)%W,y=(i*29)%H;cx.beginPath();cx.arc(x,y,.8,0,Math.PI*2);cx.fill();}
+
+cx.fillStyle='#2a1e14';cx.fillRect(0,GROUND,W,H-GROUND);
+cx.fillStyle='#3a2e22';cx.fillRect(0,GROUND,W,2);
+
+if(currentEnemy)drawChar(currentEnemy,false);
+drawChar(player,true);
+
+particles.forEach(p=>{cx.fillStyle=p.color;cx.globalAlpha=p.life/30;cx.beginPath();cx.arc(p.x,p.y,p.size,0,Math.PI*2);cx.fill();});
+cx.globalAlpha=1;
+floatingTexts.forEach(f=>{cx.fillStyle=f.color;cx.globalAlpha=f.life/30;cx.font='700 16px Outfit,sans-serif';cx.textAlign='center';cx.fillText(f.text,f.x,f.y);});
+cx.globalAlpha=1;cx.restore();
 }
 
-function draw() {
-    cx.save();
-    if(shakeMag > 0) cx.translate((Math.random()-0.5)*shakeMag, (Math.random()-0.5)*shakeMag);
-    
-    // Background
-    const grad = cx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, '#0a0a14');
-    grad.addColorStop(1, '#141428');
-    cx.fillStyle = grad;
-    cx.fillRect(0, 0, W, H);
-    
-    // Stars
-    cx.fillStyle = 'rgba(255,255,255,0.1)';
-    for(let i = 0; i < 50; i++) {
-        const x = (i * 37 + frameCount * 0.1) % W;
-        const y = (i * 23) % H;
-        cx.beginPath();
-        cx.arc(x, y, 1, 0, Math.PI * 2);
-        cx.fill();
-    }
-    
-    // Ground
-    cx.fillStyle = '#1a1a2e';
-    cx.fillRect(0, GROUND, W, H - GROUND);
-    cx.fillStyle = '#2a2a4a';
-    cx.fillRect(0, GROUND, W, 2);
-    
-    // Draw character function
-    function drawChar(char, isPlayer) {
-        cx.save();
-        cx.translate(char.x, char.y);
-        cx.scale(char.facing, 1);
-        
-        // Shadow
-        cx.fillStyle = 'rgba(0,0,0,0.3)';
-        cx.beginPath();
-        cx.ellipse(0, char.h, char.w * 0.8, 6, 0, 0, Math.PI * 2);
-        cx.fill();
-        
-        // Body (Vibe Viber style)
-        const bodyColor = char.color;
-        const darkColor = adjustColor(bodyColor, -30);
-        
-        // Legs
-        const legPhase = Math.sin(frameCount * 0.15) * 3;
-        cx.fillStyle = darkColor;
-        cx.fillRect(-8, char.h - 12, 6, 12 + legPhase);
-        cx.fillRect(2, char.h - 12, 6, 12 - legPhase);
-        
-        // Body
-        cx.fillStyle = bodyColor;
-        cx.fillRect(-char.w/2, -char.h/2, char.w, char.h);
-        
-        // Body highlight
-        cx.fillStyle = adjustColor(bodyColor, 20);
-        cx.fillRect(-char.w/2, -char.h/2, char.w, char.h/3);
-        
-        // Head
-        cx.fillStyle = bodyColor;
-        cx.fillRect(-12, -char.h/2 - 18, 24, 24);
-        
-        // Eyes (Vibe Viber style)
-        cx.fillStyle = '#fff';
-        cx.fillRect(-8, -char.h/2 - 12, 6, 6);
-        cx.fillRect(2, -char.h/2 - 12, 6, 6);
-        
-        // Pupils
-        cx.fillStyle = '#0a0a14';
-        cx.fillRect(-6, -char.h/2 - 10, 3, 3);
-        cx.fillRect(4, -char.h/2 - 10, 3, 3);
-        
-        // Antenna/trait
-        cx.fillStyle = bodyColor;
-        if(char.name === 'Phoenix') {
-            // Feather crest
-            cx.fillRect(-2, -char.h/2 - 28, 4, 10);
-            cx.fillStyle = '#ffd700';
-            cx.fillRect(-4, -char.h/2 - 32, 8, 4);
-        } else if(char.name === 'Vibe Tribe') {
-            // Twin antennas
-            cx.fillRect(-8, -char.h/2 - 28, 3, 10);
-            cx.fillRect(5, -char.h/2 - 28, 3, 10);
-            cx.fillStyle = '#c0c0c0';
-            cx.fillRect(-9, -char.h/2 - 30, 5, 3);
-            cx.fillRect(4, -char.h/2 - 30, 5, 3);
-        } else if(char.name === 'Spark') {
-            // Lightning antenna
-            cx.fillRect(-2, -char.h/2 - 32, 4, 14);
-            cx.fillStyle = '#ffe14a';
-            cx.fillRect(-6, -char.h/2 - 36, 12, 4);
-        } else if(char.name === 'Moon') {
-            // Planet antenna
-            cx.fillRect(-2, -char.h/2 - 28, 4, 10);
-            cx.fillStyle = '#7ec8ff';
-            cx.beginPath();
-            cx.arc(0, -char.h/2 - 30, 6, 0, Math.PI * 2);
-            cx.fill();
-        } else if(char.name === 'Nomad') {
-            // Bell antenna
-            cx.fillRect(-2, -char.h/2 - 28, 4, 10);
-            cx.fillStyle = '#ffd700';
-            cx.fillRect(-4, -char.h/2 - 32, 8, 4);
-            cx.fillRect(-2, -char.h/2 - 34, 4, 2);
-        }
-        
-        // Arms
-        cx.fillStyle = darkColor;
-        if(char.state === 'attack') {
-            // Attack pose
-            cx.fillRect(char.w/2, -10, 12, 6);
-            cx.fillRect(char.w/2 + 8, -12, 6, 10);
-        } else {
-            // Idle pose
-            cx.fillRect(char.w/2, -8, 6, 16);
-            cx.fillRect(-char.w/2 - 6, -8, 6, 16);
-        }
-        
-        // Ability glow
-        if(isPlayer && abilityActive) {
-            cx.fillStyle = `${bodyColor}33`;
-            cx.beginPath();
-            cx.arc(0, 0, 40, 0, Math.PI * 2);
-            cx.fill();
-        }
-        
-        cx.restore();
-    }
-    
-    // Draw enemy
-    if(currentEnemy) drawChar(currentEnemy, false);
-    
-    // Draw player
-    drawChar(player, true);
-    
-    // Particles
-    particles.forEach(p => {
-        cx.fillStyle = p.color;
-        cx.globalAlpha = p.life / 30;
-        cx.beginPath();
-        cx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        cx.fill();
-    });
-    cx.globalAlpha = 1;
-    
-    // Floating texts
-    floatingTexts.forEach(f => {
-        cx.fillStyle = f.color;
-        cx.globalAlpha = f.life / 30;
-        cx.font = 'bold 16px sans-serif';
-        cx.textAlign = 'center';
-        cx.fillText(f.text, f.x, f.y);
-    });
-    cx.globalAlpha = 1;
-    
-    cx.restore();
+function adjustColor(hex,amt){
+const r=Math.max(0,Math.min(255,parseInt(hex.slice(1,3),16)+amt));
+const g=Math.max(0,Math.min(255,parseInt(hex.slice(3,5),16)+amt));
+const b=Math.max(0,Math.min(255,parseInt(hex.slice(5,7),16)+amt));
+return`rgb(${r},${g},${b})`;
 }
 
-function adjustColor(hex, amount) {
-    const r = Math.max(0, Math.min(255, parseInt(hex.slice(1,3), 16) + amount));
-    const g = Math.max(0, Math.min(255, parseInt(hex.slice(3,5), 16) + amount));
-    const b = Math.max(0, Math.min(255, parseInt(hex.slice(5,7), 16) + amount));
-    return `rgb(${r},${g},${b})`;
+function updateHUD(){
+document.getElementById('playerHP').style.width=(player.hp/player.maxHP*100)+'%';
+document.getElementById('playerHPNum').textContent=Math.max(0,Math.round(player.hp));
+document.getElementById('playerMeta').textContent=abilityCooldown>0?'Cooldown '+Math.ceil(abilityCooldown/60)+'s':'Ability ready';
+if(currentEnemy){
+document.getElementById('enemyHP').style.width=(currentEnemy.hp/currentEnemy.maxHP*100)+'%';
+document.getElementById('enemyHPNum').textContent=Math.max(0,Math.round(currentEnemy.hp));
+}
+document.getElementById('comboDisplay').textContent=combo>1?'×'+combo:'';
+document.getElementById('killsDisplay').textContent=kills+' fallen';
 }
 
-function updateHUD() {
-    document.getElementById('playerHP').style.width = (player.hp / player.maxHP * 100) + '%';
-    document.getElementById('playerHP').style.background = player.hp > 50 ? '#00ff88' : player.hp > 25 ? '#ffd700' : '#ff4444';
-    
-    if(currentEnemy) {
-        document.getElementById('enemyHP').style.width = (currentEnemy.hp / currentEnemy.maxHP * 100) + '%';
-    }
+function gameOver(won){
+gameActive=false;
+if(won){wins++;xp+=50+kills*10;}else{losses++;xp+=10+kills*5;}
+localStorage.setItem(LS,JSON.stringify({xp,wins,losses}));
+document.getElementById('goSubtitle').textContent=won?'Victory':'Defeated';
+document.getElementById('goResult').textContent='+'+(won?50+kills*10:10+kills*5)+' XP';
+document.getElementById('goStats').innerHTML=`
+<div><span class="k">Kills</span><span class="v">${kills}</span></div>
+<div><span class="k">Best Combo</span><span class="v">${bestCombo}</span></div>
+<div><span class="k">Damage Dealt</span><span class="v">${damageDealt}</span></div>
+<div><span class="k">Damage Taken</span><span class="v">${damageTaken}</span></div>
+<div><span class="k">Total XP</span><span class="v">${xp}</span></div>`;
+document.getElementById('go').classList.add('show');
 }
 
-function gameOver(won) {
-    gameActive = false;
-    
-    if(won) {
-        wins++;
-        xp += 50 + kills * 10;
-    } else {
-        losses++;
-        xp += 10 + kills * 5;
-    }
-    
-    localStorage.setItem(LS, JSON.stringify({xp, wins, losses}));
-    
-    document.getElementById('goTitle').textContent = won ? '⚔️ Victory!' : '💀 Defeated';
-    document.getElementById('goTitle').style.color = won ? '#00ff88' : '#ff4444';
-    document.getElementById('goResult').textContent = `+${won ? 50 + kills * 10 : 10 + kills * 5} XP`;
-    document.getElementById('goStats').innerHTML = `
-        <div><span class="k">Kills</span><span class="v">${kills}</span></div>
-        <div><span class="k">Best Combo</span><span class="v">${bestCombo}</span></div>
-        <div><span class="k">Damage Dealt</span><span class="v">${damageDealt}</span></div>
-        <div><span class="k">Damage Taken</span><span class="v">${damageTaken}</span></div>
-        <div><span class="k">Total XP</span><span class="v">${xp}</span></div>
-    `;
-    document.getElementById('go').classList.add('show');
+function share(){
+const text=`⚔️ Tribe Wars — $VTRIBE\n\n${player.icon} ${player.name} defeated ${kills} enemies!\nBest Combo: ${bestCombo}\nDamage Dealt: ${damageDealt}\n\nPlay: [link]\n@vibevibe_fun`;
+open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
 }
 
-function share() {
-    const text = `⚔️ Tribe Wars — $VTRIBE\n\n${player.icon} ${player.name} defeated ${kills} enemies!\nBest Combo: ${bestCombo}\nDamage Dealt: ${damageDealt}\n\nPlay: [link]\n@vibevibe_fun`;
-    open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+document.getElementById('btnLeft').addEventListener('pointerdown',()=>{keys.left=true;});
+document.getElementById('btnLeft').addEventListener('pointerup',()=>{keys.left=false;});
+document.getElementById('btnRight').addEventListener('pointerdown',()=>{keys.right=true;});
+document.getElementById('btnRight').addEventListener('pointerup',()=>{keys.right=false;});
+document.getElementById('btnAttack').addEventListener('pointerdown',attack);
+document.getElementById('btnDodge').addEventListener('pointerdown',dodge);
+document.getElementById('btnAbility').addEventListener('pointerdown',useAbility);
+
+addEventListener('keydown',e=>{keys[e.key]=true;if(e.key===' '||e.key==='z')attack();if(e.key==='Shift'||e.key==='x')dodge();if(e.key==='e'||e.key==='q')useAbility();});
+addEventListener('keyup',e=>{keys[e.key]=false;});
+
+function handleInput(){
+if(keys.left||keys.a){player.vx=-player.spd;player.facing=-1;}
+if(keys.right||keys.d){player.vx=player.spd;player.facing=1;}
+if((keys.up||keys.w)&&player.grounded){player.vy=-8;player.grounded=false;}
 }
 
-// Input handling
-document.getElementById('btnLeft').addEventListener('pointerdown', () => { keys.left = true; });
-document.getElementById('btnLeft').addEventListener('pointerup', () => { keys.left = false; });
-document.getElementById('btnRight').addEventListener('pointerdown', () => { keys.right = true; });
-document.getElementById('btnRight').addEventListener('pointerup', () => { keys.right = false; });
-document.getElementById('btnAttack').addEventListener('pointerdown', attack);
-document.getElementById('btnDodge').addEventListener('pointerdown', dodge);
-
-addEventListener('keydown', e => {
-    keys[e.key] = true;
-    if(e.key === ' ' || e.key === 'z') attack();
-    if(e.key === 'Shift' || e.key === 'x') dodge();
-    if(e.key === 'e' || e.key === 'q') useAbility();
-});
-addEventListener('keyup', e => { keys[e.key] = false; });
-
-function handleInput() {
-    if(keys.left || keys.a) { player.vx = -player.spd; player.facing = -1; }
-    if(keys.right || keys.d) { player.vx = player.spd; player.facing = 1; }
-    if((keys.up || keys.w) && player.grounded) { player.vy = -8; player.grounded = false; }
-}
-
-function gameLoop() {
-    if(!gameActive) return;
-    handleInput();
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
+function gameLoop(){
+if(!gameActive)return;
+handleInput();update();draw();
+requestAnimationFrame(gameLoop);
 }
 
 init();
