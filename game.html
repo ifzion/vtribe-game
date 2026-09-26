@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tribe Wars — $VTRIBE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+        .wrap { max-width: 420px; margin: 0 auto; padding: 16px; }
+        .hdr { text-align: center; padding: 24px 0 12px; }
+        .hdr h1 { font-size: 28px; background: linear-gradient(135deg,#a855f7,#ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hdr p { color: #666; font-size: 13px; margin-top: 4px; }
+        .stats { display: flex; justify-content: space-around; padding: 12px; background: #141414; border-radius: 12px; margin-bottom: 16px; border: 1px solid #222; }
+        .stat { text-align: center; }
+        .stat .v { font-size: 22px; font-weight: 700; color: #a855f7; }
+        .stat .l { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+        .card { background: #141414; border-radius: 14px; padding: 20px; margin-bottom: 14px; border: 1px solid #222; }
+        .card h2 { font-size: 15px; margin-bottom: 14px; }
+        .arena { display: flex; gap: 10px; align-items: center; justify-content: center; margin-bottom: 16px; }
+        .tribe { flex: 1; max-width: 160px; background: #0a0a0a; border-radius: 14px; padding: 16px 10px; text-align: center; border: 2px solid #222; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .tribe:active { transform: scale(0.97); }
+        .tribe.sel { border-color: #a855f7; box-shadow: 0 0 16px rgba(168,85,247,0.25); }
+        .tribe.win { border-color: #00ff88; box-shadow: 0 0 20px rgba(0,255,136,0.3); }
+        .tribe.lose { border-color: #ff4444; opacity: 0.6; }
+        .tribe .icon { font-size: 40px; margin-bottom: 6px; }
+        .tribe .name { font-size: 14px; font-weight: 700; }
+        .tribe .sub { font-size: 11px; color: #666; margin-top: 2px; }
+        .tribe .pbar { height: 4px; background: #222; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+        .tribe .pbar .fill { height: 100%; border-radius: 2px; transition: width 1.5s ease-out; }
+        .tribe .hp { font-size: 12px; font-weight: 700; color: #ffd700; margin-top: 4px; }
+        .vs { font-size: 20px; font-weight: 800; color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.4); flex-shrink: 0; }
+        .fight-log { font-size: 12px; color: #555; text-align: center; margin-bottom: 12px; min-height: 18px; }
+        .fight-log .hit { color: #ff8c42; }
+        .fight-log .crit { color: #ffd700; font-weight: 700; }
+        .fight-log .win { color: #00ff88; font-weight: 700; }
+        .btn { width: 100%; padding: 13px; border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .btn:active { transform: scale(0.97); }
+        .btn-fight { background: linear-gradient(135deg,#a855f7,#6366f1); }
+        .btn-next { background: linear-gradient(135deg,#333,#444); display: none; }
+        .btn-tw { background: linear-gradient(135deg,#1da1f2,#0d8ecf); }
+        .share-card { background: #0a0a0a; border-radius: 12px; padding: 16px; margin-bottom: 12px; text-align: center; font-size: 13px; line-height: 1.6; }
+        .share-card .hl { color: #a855f7; font-weight: 700; }
+        .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+        .tab { flex: 1; padding: 8px; background: #141414; border: 1px solid #222; border-radius: 8px; color: #666; font-size: 12px; text-align: center; cursor: pointer; }
+        .tab.on { border-color: #a855f7; color: #a855f7; }
+        .lb-item { display: flex; align-items: center; padding: 10px; background: #0a0a0a; border-radius: 10px; margin-bottom: 6px; border: 1px solid #1a1a1a; }
+        .lb-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; margin-right: 10px; }
+        .lb-rank.g { background: linear-gradient(135deg,#ffd700,#ff8c00); }
+        .lb-rank.s { background: linear-gradient(135deg,#c0c0c0,#808080); }
+        .lb-rank.b { background: linear-gradient(135deg,#cd7f32,#8b4513); }
+        .lb-rank.n { background: #222; }
+        .lb-info { flex: 1; }
+        .lb-name { font-size: 13px; font-weight: 600; }
+        .lb-sub { font-size: 11px; color: #555; }
+        .lb-w { font-size: 15px; font-weight: 700; color: #ffd700; }
+        .log { font-size: 12px; max-height: 160px; overflow-y: auto; }
+        .log div { padding: 6px 0; border-bottom: 1px solid #141414; color: #555; }
+        .log .w { color: #00ff88; }
+        .log .l { color: #ff4444; }
+        .stock { background: linear-gradient(135deg,#12101f,#0f1a2e); border: 1px solid #1a1a3a; }
+        .stock h2 { color: #ffd700; }
+        .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stock-c { background: #0a0a0a; border-radius: 10px; padding: 10px; border: 1px solid #1a1a1a; }
+        .stock-c .n { font-size: 13px; font-weight: 600; }
+        .stock-c .t { font-size: 11px; color: #555; }
+        .stock-c .p { font-size: 14px; font-weight: 700; color: #00ff88; }
+        .hidden { display: none; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+        .shake { animation: shake 0.25s ease-in-out; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="hdr"><h1>⚔️ Tribe Wars</h1><p>Pick the winner. Watch the fight.</p></div>
+
+    <div class="stats">
+        <div class="stat"><div class="v" id="sBattles">0</div><div class="l">Battles</div></div>
+        <div class="stat"><div class="v" id="sStreak">0</div><div class="l">Streak</div></div>
+        <div class="stat"><div class="v" id="sRate">0%</div><div class="l">Win Rate</div></div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab on" onclick="showTab('fight')">⚔️ Fight</div>
+        <div class="tab" onclick="showTab('board')">🏆 Board</div>
+        <div class="tab" onclick="showTab('share')">📤 Share</div>
+    </div>
+
+    <!-- FIGHT -->
+    <div id="tabFight">
+        <div class="card">
+            <h2>⚔️ Battle Arena</h2>
+            <div class="arena" id="arena">
+                <div class="tribe" id="t1" onclick="pick(1)">
+                    <div class="icon" id="t1i">🔥</div>
+                    <div class="name" id="t1n">Phoenix</div>
+                    <div class="sub" id="t1a">Rebirth</div>
+                    <div class="pbar"><div class="fill" id="t1bar" style="width:100%;background:#ff6b35"></div></div>
+                    <div class="hp" id="t1hp">100</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="tribe" id="t2" onclick="pick(2)">
+                    <div class="icon" id="t2i">💜</div>
+                    <div class="name" id="t2n">Vibe Tribe</div>
+                    <div class="sub" id="t2a">Unity</div>
+                    <div class="pbar"><div class="fill" id="t2bar" style="width:100%;background:#a855f7"></div></div>
+                    <div class="hp" id="t2hp">100</div>
+                </div>
+            </div>
+            <div class="fight-log" id="fightLog">Pick your tribe!</div>
+            <button class="btn btn-fight" id="btnFight" onclick="fight()">⚔️ FIGHT</button>
+            <button class="btn btn-next" id="btnNext" onclick="nextMatch()">Next Match →</button>
+        </div>
+
+        <div class="card">
+            <h2>📜 Battle Log</h2>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <!-- BOARD -->
+    <div id="tabBoard" class="hidden">
+        <div class="card"><h2>🏆 Leaderboard</h2><div id="lb"></div></div>
+    </div>
+
+    <!-- SHARE -->
+    <div id="tabShare" class="hidden">
+        <div class="card">
+            <h2>📤 Share Your Stats</h2>
+            <div class="share-card" id="shareCard"></div>
+            <button class="btn btn-tw" onclick="share()">📤 Share on Twitter</button>
+        </div>
+    </div>
+
+    <div class="card stock">
+        <h2>📈 Tribe Stock Treasury</h2>
+        <div class="stock-grid">
+            <div class="stock-c"><div class="n">OpenAI</div><div class="t">Pre-IPO</div><div class="p">$285</div></div>
+            <div class="stock-c"><div class="n">SpaceX</div><div class="t">Pre-IPO</div><div class="p">$112</div></div>
+            <div class="stock-c"><div class="n">Stripe</div><div class="t">Pre-IPO</div><div class="p">$45</div></div>
+            <div class="stock-c"><div class="n">NVIDIA</div><div class="t">NVDA</div><div class="p">$142</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const TRIBES = [
+    { id:'phoenix', name:'Phoenix', icon:'🔥', color:'#ff6b35', ability:'Rebirth', abilityDesc:'Revive at 50% HP once', power:100, wins:0, streak:0 },
+    { id:'vtribe', name:'Vibe Tribe', icon:'💜', color:'#a855f7', ability:'Unity', abilityDesc:'+30% power when streak≥2', power:100, wins:0, streak:0 },
+    { id:'ignite', name:'Spark', icon:'⚡', color:'#3b82f6', ability:'Lightning', abilityDesc:'30% crit chance (1.8x)', power:100, wins:0, streak:0 },
+    { id:'mwalk', name:'Moon', icon:'🌙', color:'#c0c0c0', ability:'Gravity', abilityDesc:'Reduce enemy ATK 20%', power:100, wins:0, streak:0 },
+    { id:'cnmd', name:'Nomad', icon:'🔔', color:'#f59e0b', ability:'Alert', abilityDesc:'See enemy power before fight', power:100, wins:0, streak:0 }
+];
+
+const LS = 'tribe_v2';
+let save = JSON.parse(localStorage.getItem(LS)||'{}');
+let totalBattles = save.battles || 0;
+let userWins = save.wins || 0;
+let userStreak = save.streak || 0;
+let bestStreak = save.best || 0;
+let battleLog = save.log || [];
+let picked = null, match = null, fightRunning = false;
+
+TRIBES.forEach((t,i) => { const s = (save.tribes||[])[i]; if(s){t.wins=s.wins;t.streak=s.streak;t.power=s.power;} });
+
+function saveS() {
+    localStorage.setItem(LS, JSON.stringify({
+        battles:totalBattles, wins:userWins, streak:userStreak, best:bestStreak,
+        log:battleLog.slice(-30), tribes:TRIBES.map(t=>({wins:t.wins,streak:t.streak,power:t.power}))
+    }));
+}
+
+function showTab(t) {
+    ['fight','board','share'].forEach(n => {
+        document.getElementById('tab'+n.charAt(0).toUpperCase()+n.slice(1)).classList.toggle('hidden', n!==t);
+    });
+    document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('on', ['fight','board','share'][i]===t));
+    if(t==='board') renderLB();
+    if(t==='share') renderShare();
+}
+
+function genMatch() {
+    let a = Math.floor(Math.random()*TRIBES.length), b;
+    do { b = Math.floor(Math.random()*TRIBES.length); } while(b===a);
+    match = { t1:TRIBES[a], t2:TRIBES[b], hp1:100, hp2:100, p1:TRIBES[a].power+Math.floor(Math.random()*30), p2:TRIBES[b].power+Math.floor(Math.random()*30) };
+    picked = null; fightRunning = false;
+    document.getElementById('t1i').textContent = match.t1.icon;
+    document.getElementById('t1n').textContent = match.t1.name;
+    document.getElementById('t1a').textContent = match.t1.ability;
+    document.getElementById('t1bar').style.width = '100%';
+    document.getElementById('t1bar').style.background = match.t1.color;
+    document.getElementById('t1hp').textContent = '100';
+    document.getElementById('t1').className = 'tribe';
+    document.getElementById('t2i').textContent = match.t2.icon;
+    document.getElementById('t2n').textContent = match.t2.name;
+    document.getElementById('t2a').textContent = match.t2.ability;
+    document.getElementById('t2bar').style.width = '100%';
+    document.getElementById('t2bar').style.background = match.t2.color;
+    document.getElementById('t2hp').textContent = '100';
+    document.getElementById('t2').className = 'tribe';
+    document.getElementById('fightLog').textContent = 'Pick your tribe!';
+    document.getElementById('btnFight').style.display = 'block';
+    document.getElementById('btnNext').style.display = 'none';
+}
+
+function pick(n) {
+    if(fightRunning) return;
+    picked = n;
+    document.getElementById('t1').classList.toggle('sel', n===1);
+    document.getElementById('t2').classList.toggle('sel', n===2);
+    // Nomad ability: see enemy power
+    const myTribe = n===1 ? match.t1 : match.t2;
+    if(myTribe.id==='cnmd') {
+        const enemyHP = n===1 ? match.p2 : match.p1;
+        document.getElementById('fightLog').textContent = `Enemy power: ${enemyHP} (Alert!)`;
+    }
+}
+
+function fight() {
+    if(!picked || fightRunning) return;
+    fightRunning = true;
+    document.getElementById('btnFight').style.display = 'none';
+
+    let {t1,t2,hp1,hp2,p1,p2} = match;
+
+    // Apply abilities
+    if(t1.id==='vtribe' && t1.streak>=2) p1 = Math.floor(p1*1.3);
+    if(t2.id==='vtribe' && t2.streak>=2) p2 = Math.floor(p2*1.3);
+    if(t1.id==='mwalk') p2 = Math.floor(p2*0.8);
+    if(t2.id==='mwalk') p1 = Math.floor(p1*0.8);
+
+    let revived1 = false, revived2 = false;
+    const log = [];
+    let tick = 0;
+    const maxHP1 = 100, maxHP2 = 100;
+
+    const interval = setInterval(() => {
+        tick++;
+        // Each tick: both deal damage based on power + randomness
+        let dmg1 = Math.floor(p1 * (0.3 + Math.random()*0.4));
+        let dmg2 = Math.floor(p2 * (0.3 + Math.random()*0.4));
+
+        // Crit check
+        let crit1 = false, crit2 = false;
+        if(t1.id==='ignite' && Math.random()<0.3) { dmg1 = Math.floor(dmg1*1.8); crit1 = true; }
+        if(t2.id==='ignite' && Math.random()<0.3) { dmg2 = Math.floor(dmg2*1.8); crit2 = true; }
+
+        hp2 = Math.max(0, hp2 - dmg1);
+        hp1 = Math.max(0, hp1 - dmg2);
+
+        // Revive check
+        if(hp1<=0 && !revived1 && t1.id==='phoenix') { hp1=50; revived1=true; log.push(`${t1.icon} REVIVES!`); }
+        if(hp2<=0 && !revived2 && t2.id==='phoenix') { hp2=50; revived2=true; log.push(`${t2.icon} REVIVES!`); }
+
+        // Update bars
+        document.getElementById('t1bar').style.width = (hp1/maxHP1*100)+'%';
+        document.getElementById('t2bar').style.width = (hp2/maxHP2*100)+'%';
+        document.getElementById('t1hp').textContent = hp1;
+        document.getElementById('t2hp').textContent = hp2;
+
+        // Shake on hit
+        if(crit1) document.getElementById('t2').classList.add('shake');
+        if(crit2) document.getElementById('t1').classList.add('shake');
+        setTimeout(()=>{ document.getElementById('t1').classList.remove('shake'); document.getElementById('t2').classList.remove('shake'); }, 250);
+
+        // Log
+        let entry = `${t1.icon} -${dmg2} ${crit2?'💥':''}  ↔  ${t2.icon} -${dmg1} ${crit1?'💥':''}`;
+        log.push(entry);
+        document.getElementById('fightLog').innerHTML = log.slice(-3).join('<br>');
+
+        // Check winner
+        if(hp1<=0 || hp2<=0 || tick>30) {
+            clearInterval(interval);
+            const winner = hp1>hp2 ? 1 : hp2>hp1 ? 2 : (p1>p2?1:2);
+            const wt = winner===1?t1:t2;
+            const lt = winner===1?t2:t1;
+            document.getElementById('t'+winner).classList.add('win');
+            document.getElementById('t'+(winner===1?2:1)).classList.add('lose');
+            document.getElementById('fightLog').innerHTML += `<br><span class="win">${wt.icon} ${wt.name} WINS!</span>`;
+
+            wt.wins++; wt.streak++; lt.streak=0;
+            wt.power+=8; lt.power=Math.max(50,lt.power-3);
+            if(wt.streak>bestStreak) bestStreak=wt.streak;
+
+            totalBattles++;
+            if(picked===winner) { userWins++; userStreak++; }
+            else userStreak=0;
+
+            battleLog.push(`${wt.icon} beat ${lt.icon} (${hp1>hp2?hp1:hp2} vs ${hp1>hp2?hp2:hp1})`);
+            saveS(); updateStats();
+            document.getElementById('btnNext').style.display = 'block';
+        }
+    }, 400);
+}
+
+function nextMatch() { genMatch(); }
+
+function updateStats() {
+    document.getElementById('sBattles').textContent = totalBattles;
+    document.getElementById('sStreak').textContent = userStreak;
+    document.getElementById('sRate').textContent = totalBattles?Math.round(userWins/totalBattles*100)+'%':'0%';
+}
+
+function renderLB() {
+    const sorted = [...TRIBES].sort((a,b)=>b.wins-a.wins);
+    document.getElementById('lb').innerHTML = sorted.map((t,i)=>{
+        const rc = ['g','s','b'][i]||'n';
+        return `<div class="lb-item"><div class="lb-rank ${rc}">${i+1}</div><div class="lb-info"><div class="lb-name">${t.icon} ${t.name}</div><div class="lb-sub">${t.ability}</div></div><div class="lb-w">${t.wins}W</div></div>`;
+    }).join('');
+}
+
+function renderShare() {
+    const sorted = [...TRIBES].sort((a,b)=>b.wins-a.wins);
+    const top = sorted[0];
+    const rate = totalBattles?Math.round(userWins/totalBattles*100):0;
+    document.getElementById('shareCard').innerHTML = `⚔️ <span class="hl">Tribe Wars</span> — $VTRIBE<br><br>🏆 Top: ${top.icon} ${top.name} (${top.wins}W)<br>🎯 Win Rate: ${rate}%<br>🔥 Streak: ${userStreak}<br>⚔️ Battles: ${totalBattles}`;
+}
+
+function share() {
+    const sorted = [...TRIBES].sort((a,b)=>b.wins-a.wins);
+    const top = sorted[0];
+    const rate = totalBattles?Math.round(userWins/totalBattles*100):0;
+    const text = `⚔️ Tribe Wars — $VTRIBE\n\n🏆 Top: ${top.icon} ${top.name} (${top.wins}W)\n🎯 Win Rate: ${rate}%\n🔥 Streak: ${userStreak}\n\nPlay: [link]\n@vibevibe_fun`;
+    open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`);
+}
+
+genMatch(); updateStats(); renderLB(); renderShare();
+</script>
+</body>
+</html>
